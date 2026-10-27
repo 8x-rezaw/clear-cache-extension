@@ -1,0 +1,166 @@
+<!doctype html>
+<html dir="rtl" lang="fa">
+<head>
+<meta charset="utf-8">
+<link rel="preload" href="fonts/vazirmatn.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  @font-face {
+    font-family: "Vazirmatn";
+    src: url("fonts/vazirmatn.woff2") format("woff2");
+    font-weight: 100 900;
+    font-display: block;
+  }
+  :root {
+    color-scheme: light;
+    --bg: #ffffff; --text: #1f2937; --muted: #6b7280; --soft: #f3f4f6;
+    --range-text: #4b5563; --pill: #ffffff; --line: #e5e7eb;
+    --accent: #1a73e8; --accent-hover: #1765cc; --accent-text: #1a73e8;
+    --tip-bg: #1f2937; --tip-text: #ffffff;
+    --ok: #16a34a; --err: #dc2626;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #1e1f22; --text: #e8eaed; --muted: #9aa0a6; --soft: #2b2d31;
+    --range-text: #bdc1c6; --pill: #3c4043; --line: #3c4043;
+    --accent: #3b82f6; --accent-hover: #2f6fe0; --accent-text: #8ab4f8;
+    --tip-bg: #e8eaed; --tip-text: #1e1f22;
+    --ok: #15803d; --err: #b91c1c;
+  }
+  * { box-sizing: border-box; font-family: "Vazirmatn"; }
+  html, body { overflow: hidden; }
+  ::-webkit-scrollbar { display: none; }
+  body {
+    width: 340px; margin: 0; padding: 12px 12px 14px;
+    font-size: 13px; color: var(--text); background: var(--bg);
+    font-feature-settings: "ss01";
+  }
+  header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  header img { width: 24px; height: 24px; }
+  h1 { margin: 0; font-size: 15px; font-weight: 700; flex: 1; }
+  #theme {
+    width: 30px; height: 30px; margin: 0; padding: 0; border-radius: 8px;
+    display: grid; place-items: center;
+    background: transparent; color: var(--muted);
+  }
+  #theme:hover { background: var(--soft); color: var(--text); }
+  #theme svg { width: 18px; height: 18px; }
+  #theme .sun { display: none; }
+  :root[data-theme="dark"] #theme .sun { display: block; }
+  :root[data-theme="dark"] #theme .moon { display: none; }
+  .blocker {
+    position: relative; display: flex; align-items: center; gap: 10px;
+    margin: 4px 0 2px; padding: 8px 10px; border-radius: 10px; background: var(--soft);
+  }
+  .blocker-text { flex: 1; min-width: 0; }
+  .blocker b { display: block; font-weight: 600; font-size: 13px; line-height: 1.5; }
+  .blocker small { display: block; font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .blocker bdi { direction: ltr; unicode-bidi: isolate; }
+  button.link {
+    width: auto; margin: 0 4px 0 0; padding: 0; background: none; border-radius: 0;
+    color: var(--accent-text); font-size: 11px; font-weight: 600;
+  }
+  button.link:hover { background: none; text-decoration: underline; }
+  input[type=checkbox].switch {
+    appearance: none; flex-shrink: 0; position: relative; width: 34px; height: 20px; margin: 0;
+    border-radius: 999px; background: var(--line); cursor: pointer; transition: background .15s;
+  }
+  input[type=checkbox].switch::after {
+    content: ""; position: absolute; top: 2px; right: 2px; width: 16px; height: 16px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s;
+  }
+  input[type=checkbox].switch:checked { background: var(--accent); }
+  input[type=checkbox].switch:checked::after { transform: translateX(-14px); }
+  .blocker[data-en]::after {
+    content: attr(data-en);
+    position: absolute; left: 6px; top: -10px; direction: ltr;
+    padding: 2px 8px; border-radius: 5px;
+    background: var(--tip-bg); color: var(--tip-text); font-size: 11px; font-weight: 500;
+    opacity: 0; pointer-events: none; transition: opacity .15s;
+  }
+  .blocker[data-en]:hover::after { opacity: 1; transition-delay: .3s; }
+  .section-title { font-size: 11px; font-weight: 600; color: var(--muted); margin: 8px 0 2px; }
+  label.opt {
+    position: relative; display: flex; align-items: flex-start; gap: 8px;
+    padding: 4px 6px; border-radius: 6px; cursor: pointer;
+  }
+  label.opt input { margin-top: 3px; flex-shrink: 0; }
+  label.opt b { display: block; font-weight: 600; font-size: 13px; line-height: 1.5; }
+  label.opt small { display: block; font-size: 11px; color: var(--muted); line-height: 1.5; }
+  label.opt[data-en]::after {
+    content: attr(data-en);
+    position: absolute; left: 6px; top: 4px; direction: ltr;
+    padding: 2px 8px; border-radius: 5px;
+    background: var(--tip-bg); color: var(--tip-text); font-size: 11px; font-weight: 500;
+    opacity: 0; transform: translateY(2px); pointer-events: none;
+    transition: opacity .15s, transform .15s;
+  }
+  label.opt[data-en]:hover::after { opacity: 1; transform: none; transition-delay: .3s; }
+  label.opt:hover { background: var(--soft); }
+  input[type=checkbox] { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+  .range { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--soft); padding: 3px; border-radius: 8px; }
+  .range input { display: none; }
+  .range label {
+    text-align: center; padding: 5px 0; border-radius: 6px; cursor: pointer;
+    font-size: 12px; font-weight: 500; color: var(--range-text);
+  }
+  .range input:checked + label { background: var(--pill); color: var(--accent-text); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 8px 0 2px; }
+  button {
+    width: 100%; margin-top: 10px; padding: 9px; border: 0; border-radius: 8px;
+    background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  button:disabled { opacity: .6; cursor: default; }
+  .actions { display: grid; gap: 6px; margin-top: 10px; }
+  .actions button { margin-top: 0; }
+  button.secondary { background: var(--soft); color: var(--text); font-size: 13px; font-weight: 600; }
+  button.secondary:hover { background: var(--line); }
+  button.ok { background: var(--ok); color: #fff; }
+  button.err { background: var(--err); color: #fff; }
+</style>
+<script src="theme.js"></script>
+</head>
+<body>
+  <header>
+    <img src="icons/icon48.png" alt="">
+    <h1>پاک کردن کش</h1>
+    <button id="theme" type="button" aria-label="تغییر تم">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </header>
+
+  <div class="blocker" data-en="Pop-up ad blocker">
+    <div class="blocker-text">
+      <b>مسدود کردن پنجره‌های تبلیغاتی</b>
+      <small><span id="blockInfo"></span><button id="siteToggle" class="link" hidden></button></small>
+    </div>
+    <input type="checkbox" id="popupBlock" class="switch" aria-label="مسدود کردن پنجره‌های تبلیغاتی">
+  </div>
+
+  <div class="section-title">چه چیزهایی پاک شود</div>
+  <label class="opt" data-en="Cache"><input type="checkbox" id="cache" checked><span><b>کش مرورگر</b><small>فایل‌هایی که برای باز شدن سریع‌تر صفحه‌ها ذخیره شده</small></span></label>
+  <label class="opt" data-en="Cache Storage / Service Workers"><input type="checkbox" id="cacheStorage"><span><b>حافظه‌ی آفلاین سایت‌ها</b><small>داده‌هایی که سایت‌ها برای کار بدون اینترنت نگه می‌دارند</small></span></label>
+  <label class="opt" data-en="Cookies"><input type="checkbox" id="cookies"><span><b>کوکی‌ها</b><small>با پاک شدنشان از حساب کاربری سایت‌ها خارج می‌شوید</small></span></label>
+  <label class="opt" data-en="Local Storage"><input type="checkbox" id="localStorage"><span><b>حافظه‌ی محلی سایت‌ها</b><small>تنظیمات و اطلاعاتی که سایت‌ها در مرورگر ذخیره کرده‌اند</small></span></label>
+
+  <div class="section-title">بازه‌ی زمانی</div>
+  <div class="range">
+    <input type="radio" name="since" id="r1" value="3600000"><label for="r1">۱ ساعت</label>
+    <input type="radio" name="since" id="r2" value="86400000"><label for="r2">۲۴ ساعت</label>
+    <input type="radio" name="since" id="r3" value="604800000"><label for="r3">۱ هفته</label>
+    <input type="radio" name="since" id="r4" value="0" checked><label for="r4">همه</label>
+  </div>
+
+  <hr>
+  <label class="opt" data-en="Current site only"><input type="checkbox" id="currentSiteOnly"><span><b>فقط سایت فعلی</b><small>فقط داده‌های سایتی که الان باز است پاک شود</small></span></label>
+  <label class="opt" data-en="Hard reload after clearing"><input type="checkbox" id="reload" checked><span><b>رفرش صفحه</b><small>بعد از پاک کردن، صفحه دوباره و بدون کش بارگذاری شود</small></span></label>
+
+  <div class="actions">
+    <button id="clear" data-label="پاک کن">پاک کن</button>
+    <button id="clearSuggestions" class="secondary" data-label="پاک کردن پیشنهادهای نوار آدرس">پاک کردن پیشنهادهای نوار آدرس</button>
+  </div>
+  <script src="site.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
