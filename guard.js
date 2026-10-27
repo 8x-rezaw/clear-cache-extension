@@ -41,9 +41,19 @@
     document.dispatchEvent(new CustomEvent(EVENT, { detail: u ? u.href : '' }));
   };
 
+  const approve = (url, long = false) => {
+    const u = resolve(url);
+    if (u) document.dispatchEvent(new CustomEvent('__ccx_allow', { detail: JSON.stringify({ url: u.href, long }) }));
+  };
+
+  let lastNewWindow = 0;
+
   const nativeOpen = window.open;
   function open(url, ...rest) {
-    if (allowed(url)) return nativeOpen.call(this === undefined ? window : this, url, ...rest);
+    if (allowed(url)) {
+      lastNewWindow = Date.now();
+      return nativeOpen.call(this === undefined ? window : this, url, ...rest);
+    }
     report(url);
     return null;
   }
@@ -77,14 +87,40 @@
   const blockAnchor = (a, trusted) =>
     a instanceof HTMLAnchorElement && a.href && opensNewWindow(a) && !allowed(a.href) && (!trusted || hidden(a));
 
+  const anchorOf = (e) => (e.target instanceof Element ? e.target.closest('a[href]') : null);
+
   addEventListener('click', (e) => {
-    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
-    const a = e.target instanceof Element ? e.target.closest('a[href]') : null;
-    if (!a || !blockAnchor(a, e.isTrusted)) return;
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    report(a.href);
+    const a = anchorOf(e);
+    if (!a || e.button !== 0) return;
+    if (e.isTrusted && (e.ctrlKey || e.metaKey || e.shiftKey)) return approve(a.href);
+    if (!opensNewWindow(a)) return;
+    if (blockAnchor(a, e.isTrusted)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return report(a.href);
+    }
+    lastNewWindow = Date.now();
+    if (e.isTrusted) approve(a.href);
   }, true);
+
+  addEventListener('auxclick', (e) => {
+    const a = anchorOf(e);
+    if (a && e.isTrusted && e.button === 1) approve(a.href);
+  }, true);
+
+  addEventListener('contextmenu', (e) => {
+    const a = anchorOf(e);
+    if (a && e.isTrusted) approve(a.href, true);
+  }, true);
+
+  if (window === top && window.navigation) {
+    navigation.addEventListener('navigate', (e) => {
+      if (!e.cancelable || e.userInitiated || e.hashChange || e.downloadRequest !== null) return;
+      if (Date.now() - lastNewWindow > 3000 || allowed(e.destination.url)) return;
+      e.preventDefault();
+      report(e.destination.url);
+    });
+  }
 
   const nativeClick = HTMLElement.prototype.click;
   HTMLElement.prototype.click = function () {

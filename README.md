@@ -10,7 +10,7 @@ A Chrome extension to clear cache, cookies, site storage and address bar suggest
 - انتخاب بازه‌ی زمانی: ۱ ساعت، ۲۴ ساعت، ۱ هفته یا همه
 - پاک کردن فقط برای سایت فعلی
 - پاک کردن پیشنهادهای نوار آدرس (تاریخچه) با یک دکمه‌ی جدا
-- مسدود کردن تب‌ها و پنجره‌های تبلیغاتی، با امکان باز کردن دستی یا مجاز کردن هر سایت
+- مسدود کردن تب‌ها و پنجره‌های تبلیغاتی و ریدایرکت تب فعلی به سایت تبلیغاتی، با امکان باز کردن دستی یا مجاز کردن هر سایت
 - حالت روشن و تیره
 - میانبر `Alt+Shift+C`
 
@@ -39,6 +39,7 @@ A Chrome extension to clear cache, cookies, site storage and address bar suggest
 | `browsingData` | Clearing cache, cookies and site storage |
 | `history` | Clearing address bar suggestions for a single site |
 | `scripting`, host access | Running the pop-up blocker on web pages |
+| `webNavigation` | Closing ad tabs that a page opens or redirects to another site |
 | `storage` | Remembering blocker settings and allowed sites |
 | `activeTab` | Reading the current tab's address |
 

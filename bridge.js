@@ -7,6 +7,13 @@
     chrome.runtime.sendMessage({ type: 'blocked', url }).catch(() => {});
   });
 
+  document.addEventListener('__ccx_allow', (e) => {
+    try {
+      const { url, long } = JSON.parse(e.detail);
+      chrome.runtime.sendMessage({ type: 'approve', url: String(url), long: Boolean(long) }).catch(() => {});
+    } catch {}
+  });
+
   if (window !== top) return;
 
   const fa = (n) => n.toLocaleString('fa-IR');

@@ -35,6 +35,83 @@ async function setSiteAllowed(site, allow) {
   await sync();
 }
 
+const parseWeb = (raw) => {
+  try {
+    const url = new URL(raw);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url : null;
+  } catch {
+    return null;
+  }
+};
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const approvals = new Map();
+const watched = new Map();
+
+function addApproval(tabId, url, long) {
+  const now = Date.now();
+  const list = (approvals.get(tabId) || []).filter((a) => a.until > now);
+  list.push({ url, until: now + (long ? 30000 : 4000) });
+  approvals.set(tabId, list);
+}
+
+function takeApproval(tabId, url) {
+  const now = Date.now();
+  const list = (approvals.get(tabId) || []).filter((a) => a.until > now);
+  const i = list.findIndex((a) => a.url === url);
+  if (i !== -1) list.splice(i, 1);
+  approvals.set(tabId, list);
+  return i !== -1;
+}
+
+async function reportBlocked(tabId, url) {
+  const count = await bumpBadge(tabId).catch(() => 0);
+  await chrome.tabs.sendMessage(tabId, { type: 'toast', url: String(url || ''), count }, { frameId: 0 }).catch(() => {});
+}
+
+function inspect(tabId) {
+  const entry = watched.get(tabId);
+  if (!entry || entry.pending) return;
+  if (Date.now() > entry.until) return watched.delete(tabId);
+  const url = parseWeb(entry.url);
+  if (!url || siteOf(url.hostname) === entry.site) return;
+  watched.delete(tabId);
+  chrome.tabs.remove(tabId).catch(() => {});
+  reportBlocked(entry.source, entry.url);
+}
+
+chrome.webNavigation.onCreatedNavigationTarget.addListener(async (d) => {
+  const { popupBlock, allowedSites } = await getSettings();
+  if (!popupBlock) return;
+  const source = await chrome.tabs.get(d.sourceTabId).catch(() => null);
+  const from = source && parseWeb(source.url);
+  if (!from) return;
+  const site = siteOf(from.hostname);
+  if (allowedSites.includes(site)) return;
+
+  const entry = { source: d.sourceTabId, site, url: d.url, pending: true, until: Date.now() + 15000 };
+  watched.set(d.tabId, entry);
+  await sleep(250);
+  if (takeApproval(d.sourceTabId, d.url)) return watched.delete(d.tabId);
+  entry.pending = false;
+  inspect(d.tabId);
+});
+
+const onMainFrame = (d) => {
+  if (d.frameId !== 0) return;
+  const entry = watched.get(d.tabId);
+  if (!entry) return;
+  entry.url = d.url;
+  inspect(d.tabId);
+};
+chrome.webNavigation.onBeforeNavigate.addListener(onMainFrame);
+chrome.webNavigation.onCommitted.addListener(onMainFrame);
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  watched.delete(tabId);
+  approvals.delete(tabId);
+});
+
 async function bumpBadge(tabId) {
   const count = (Number(await chrome.action.getBadgeText({ tabId })) || 0) + 1;
   await chrome.action.setBadgeText({ tabId, text: String(count) });
@@ -54,10 +131,10 @@ chrome.tabs.onUpdated.addListener((tabId, info) => {
 
 const handlers = {
   async blocked(msg, sender) {
-    const tabId = sender.tab?.id;
-    if (tabId === undefined) return;
-    const count = await bumpBadge(tabId);
-    await chrome.tabs.sendMessage(tabId, { type: 'toast', url: String(msg.url || ''), count }, { frameId: 0 }).catch(() => {});
+    if (sender.tab) await reportBlocked(sender.tab.id, msg.url);
+  },
+  async approve(msg, sender) {
+    if (sender.tab && parseWeb(msg.url)) addApproval(sender.tab.id, msg.url, msg.long);
   },
   async open(msg, sender) {
     if (!sender.tab || sender.frameId !== 0 || !/^https?:\/\//.test(msg.url)) return;
