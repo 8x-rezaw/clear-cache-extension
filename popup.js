@@ -13,6 +13,8 @@ const store = {
   },
 };
 
+$('version').textContent = 'v' + chrome.runtime.getManifest().version;
+
 const prefs = store.get();
 for (const id of OPTIONS) if (typeof prefs[id] === 'boolean') $(id).checked = prefs[id];
 const savedRange = document.querySelector(`input[name=since][value="${prefs.since}"]`);
