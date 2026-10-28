@@ -2,20 +2,26 @@
   if (window.__ccxBridge) return;
   window.__ccxBridge = true;
 
+  // After the extension reloads, scripts left in open pages lose their connection
+  // and sendMessage throws instead of rejecting.
+  const send = (msg) => {
+    try { chrome.runtime.sendMessage(msg).catch(() => {}); } catch {}
+  };
+
   document.addEventListener('__ccx_blocked', (e) => {
     const url = typeof e.detail === 'string' ? e.detail : '';
-    chrome.runtime.sendMessage({ type: 'blocked', url }).catch(() => {});
+    send({ type: 'blocked', url });
   });
 
   document.addEventListener('__ccx_allow', (e) => {
     try {
       const { url, long } = JSON.parse(e.detail);
-      chrome.runtime.sendMessage({ type: 'approve', url: String(url), long: Boolean(long) }).catch(() => {});
+      send({ type: 'approve', url: String(url), long: Boolean(long) });
     } catch {}
   });
 
   document.addEventListener('__ccx_trap', () => {
-    chrome.runtime.sendMessage({ type: 'trap' }).catch(() => {});
+    send({ type: 'trap' });
   });
 
   if (window !== top) return;
@@ -28,7 +34,7 @@
 
   function build() {
     document.fonts.add(font);
-    font.load().catch(() => {});
+    font.load();
 
     const host = document.createElement('div');
     host.style.cssText = 'all:initial;position:fixed;inset:auto auto 16px 16px;z-index:2147483647';
@@ -80,12 +86,12 @@
     root.querySelector('.x').addEventListener('click', (e) => e.isTrusted && hide());
     ui.open.addEventListener('click', (e) => {
       if (!e.isTrusted) return;
-      chrome.runtime.sendMessage({ type: 'open', url: ui.target }).catch(() => {});
+      send({ type: 'open', url: ui.target });
       hide();
     });
     root.querySelector('.allow').addEventListener('click', (e) => {
       if (!e.isTrusted) return;
-      chrome.runtime.sendMessage({ type: 'allowSite' }).catch(() => {});
+      send({ type: 'allowSite' });
       hide();
     });
     box.addEventListener('mouseenter', () => clearTimeout(hideTimer));
