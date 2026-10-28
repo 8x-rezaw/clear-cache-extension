@@ -23,8 +23,10 @@ async function register() {
   if (existing.length) await chrome.scripting.unregisterContentScripts();
   if (!popupBlock) return;
 
-  const excludeMatches = allowedSites.flatMap((site) =>
-    site.includes('.') && !/^[\d.]+$/.test(site) ? [`*://${site}/*`, `*://*.${site}/*`] : [`*://${site}/*`]);
+  const patterns = (site) =>
+    site.includes('.') && !/^[\d.]+$/.test(site) ? [`*://${site}/*`, `*://*.${site}/*`] : [`*://${site}/*`];
+  const excludeMatches = allowedSites.flatMap(patterns);
+  const { genericOff } = await loadCosmetic();
   const common = {
     matches: ['http://*/*', 'https://*/*'],
     excludeMatches,
@@ -34,7 +36,15 @@ async function register() {
   };
   await chrome.scripting.registerContentScripts([
     { id: 'guard', js: ['guard.js'], world: 'MAIN', ...common },
-    { id: 'bridge', js: ['bridge.js'], ...common },
+    { id: 'scriptlets', js: ['rules/scriptlets.js'], world: 'MAIN', ...common },
+    { id: 'bridge', js: ['bridge.js', 'procedural.js'], ...common },
+    {
+      id: 'generic',
+      css: ['rules/generic.css'],
+      matches: common.matches,
+      excludeMatches: [...excludeMatches, ...genericOff.flatMap(patterns)],
+      runAt: 'document_start',
+    },
   ]);
 }
 
@@ -64,19 +74,33 @@ const attempts = new Map();
 const trapped = (tabId) => (traps.get(tabId) || 0) > Date.now();
 
 let cosmetic = null;
-async function cosmeticCss(hostname) {
-  cosmetic ??= await fetch(chrome.runtime.getURL('rules/cosmetic.json')).then((r) => r.json());
+const loadCosmetic = async () =>
+  (cosmetic ??= await fetch(chrome.runtime.getURL('rules/cosmetic.json')).then((r) => r.json()));
+
+const hostChain = (hostname) => {
   const parts = hostname.split('.');
-  const hosts = parts.map((_, i) => parts.slice(i).join('.'));
-  const selectors = new Set(cosmetic.generic);
-  for (const [sel, except] of Object.entries(cosmetic.genericExcept)) {
-    if (!except.some((d) => hosts.includes(d))) selectors.add(sel);
+  return parts.slice(0, -1).map((_, i) => parts.slice(i).join('.'));
+};
+
+async function cosmeticCss(hostname) {
+  const { genericExcept, sites, except, genericOff } = await loadCosmetic();
+  const hosts = hostChain(hostname);
+  const selectors = new Set();
+  if (!hosts.some((h) => genericOff.includes(h))) {
+    for (const [sel, skip] of Object.entries(genericExcept)) {
+      if (!skip.some((d) => hosts.includes(d))) selectors.add(sel);
+    }
   }
-  for (const h of hosts) for (const sel of cosmetic.sites[h] || []) selectors.add(sel);
-  for (const [sel, domains] of Object.entries(cosmetic.except)) {
-    if (domains.some((d) => hosts.includes(d))) selectors.delete(sel);
+  for (const h of hosts) for (const sel of sites[h] || []) selectors.add(sel);
+  for (const h of hosts) {
+    for (const sel of Object.keys(except)) if (except[sel].includes(h)) selectors.delete(sel);
   }
-  return [...selectors].map((sel) => `${sel}{display:none!important}`).join('\n');
+  return [...selectors].map((sel) => (sel.endsWith('}') ? sel : `${sel}{display:none!important}`)).join('\n');
+}
+
+async function proceduralTasks(hostname) {
+  const { procedural } = await loadCosmetic();
+  return hostChain(hostname).flatMap((h) => procedural[h] || []);
 }
 
 function addApproval(tabId, url, long) {
@@ -192,6 +216,10 @@ chrome.tabs.onUpdated.addListener((tabId, info) => {
 const handlers = {
   async blocked(msg, sender) {
     if (sender.tab) await reportBlocked(sender.tab.id, msg.url);
+  },
+  async procedural(msg, sender) {
+    const url = parseWeb(sender.url);
+    return url ? proceduralTasks(url.hostname) : [];
   },
   async trap(msg, sender) {
     if (sender.tab) traps.set(sender.tab.id, Date.now() + 1500);

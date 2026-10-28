@@ -10,7 +10,8 @@ A Chrome extension to clear cache, cookies, site storage and address bar suggest
 - انتخاب بازه‌ی زمانی: ۱ ساعت، ۲۴ ساعت، ۱ هفته یا همه
 - پاک کردن فقط برای سایت فعلی
 - پاک کردن پیشنهادهای نوار آدرس (تاریخچه) با یک دکمه‌ی جدا
-- مسدود کردن شبکه‌های تبلیغاتی و مخفی کردن تبلیغ‌های داخل صفحه، بر پایه‌ی فهرست‌های EasyList و PersianBlocker
+- مسدود کردن شبکه‌های تبلیغاتی و مخفی کردن تبلیغ‌های داخل صفحه، بر پایه‌ی فهرست‌های EasyList، uBlock filters، Peter Lowe و PersianBlocker
+- اجرای قوانین پیشرفته (مثل مخفی کردن بر اساس متن) و اسکریپت‌های ضدتبلیغ مخصوص هر سایت
 - مسدود کردن تب‌ها و پنجره‌های تبلیغاتی و ریدایرکت تب فعلی به سایت تبلیغاتی
 - شناسایی پنجره‌های هشدار جعلی و دکمه‌های «بستن» تقلبی که به صفحه‌ی تبلیغاتی می‌برند
 - امکان باز کردن دستی یا مجاز کردن هر سایت
@@ -59,4 +60,4 @@ python3 tools/build-rules.py
 
 The bundled [Vazirmatn](https://github.com/rastikerdar/vazirmatn) font is licensed under the SIL Open Font License (`fonts/OFL.txt`).
 
-Files in `rules/` are generated from [EasyList](https://easylist.to) (GPLv3 / CC BY-SA 3.0) and [PersianBlocker](https://codeberg.org/KhodeKiaa/PersianBlocker) (AGPLv3) and remain under their respective licenses.
+Files in `rules/` are generated from [EasyList](https://easylist.to) (GPLv3 / CC BY-SA 3.0), [uBlock filters](https://github.com/uBlockOrigin/uAssets) (GPLv3), [Peter Lowe's list](https://pgl.yoyo.org/adservers/) and [PersianBlocker](https://codeberg.org/KhodeKiaa/PersianBlocker) (AGPLv3), and remain under their respective licenses.
