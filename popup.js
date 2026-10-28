@@ -70,6 +70,7 @@ async function run(btn, action) {
   clearTimeout(btn.resetTimer);
   buttons.forEach((b) => (b.disabled = true));
   show('در حال پاک کردن…');
+  const slowTimer = setTimeout(() => show('در حال پاک کردن · می‌توانید ببندید'), 2500);
 
   try {
     await action();
@@ -78,6 +79,7 @@ async function run(btn, action) {
     show(e instanceof UserError ? e.message : 'خطا: ' + e.message, 'err');
   } finally {
     busy = false;
+    clearTimeout(slowTimer);
     buttons.forEach((b) => (b.disabled = false));
     btn.resetTimer = setTimeout(() => show(base), 2000);
   }
@@ -98,11 +100,9 @@ $('clear').addEventListener('click', () => run($('clear'), async () => {
   const options = { since: since() };
   if (site) options.origins = siteOrigins(site);
 
-  await chrome.browsingData.remove(options, dataTypes);
-
-  if ($('reload').checked && tab?.id && parseWebUrl(tab.url)) {
-    await chrome.tabs.reload(tab.id, { bypassCache: true });
-  }
+  const reload = $('reload').checked && tab?.id !== undefined && Boolean(parseWebUrl(tab.url));
+  const done = await chrome.runtime.sendMessage({ type: 'clear', options, dataTypes, tabId: tab?.id, reload });
+  if (done !== true) throw new UserError('پاک کردن انجام نشد.');
 }));
 
 $('clearSuggestions').addEventListener('click', () => run($('clearSuggestions'), async () => {

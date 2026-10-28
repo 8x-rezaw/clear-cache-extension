@@ -226,7 +226,28 @@ chrome.tabs.onUpdated.addListener((tabId, info) => {
   if (info.status === 'loading' && info.url) chrome.action.setBadgeText({ tabId, text: '' });
 });
 
+// Removing the HTTP cache for specific origins or a time range means scanning
+// the whole cache, which can take minutes on a large one. Clear everything else
+// first and reload the tab (bypassing the cache), then let the scan finish.
+async function clearData({ options, dataTypes, tabId, reload }) {
+  const { cache, ...rest } = dataTypes;
+  const slowCache = cache && (options.origins || options.since);
+  const keepAlive = setInterval(() => chrome.runtime.getPlatformInfo(), 20000);
+  try {
+    await chrome.browsingData.remove(options, slowCache ? rest : dataTypes);
+    if (reload && tabId) await chrome.tabs.reload(tabId, { bypassCache: true }).catch(() => {});
+    if (slowCache) await chrome.browsingData.remove(options, { cache: true });
+  } finally {
+    clearInterval(keepAlive);
+  }
+}
+
 const handlers = {
+  async clear(msg, sender) {
+    if (sender.tab) return false;
+    await clearData(msg);
+    return true;
+  },
   async blocked(msg, sender) {
     if (sender.tab) await reportBlocked(sender.tab.id, msg.url);
   },
