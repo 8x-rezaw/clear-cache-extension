@@ -132,6 +132,11 @@ function siteOrigins(site) {
 }
 
 async function initBlocker() {
+  if (!chrome.storage || !chrome.declarativeNetRequest) {
+    $('popupBlock').disabled = true;
+    $('blockInfo').textContent = 'برای فعال شدن، اکستنشن را در chrome://extensions حذف و دوباره نصب کنید';
+    return;
+  }
   const tab = await activeTab();
   const url = parseWebUrl(tab?.url);
   const site = url && siteOf(url.hostname);
