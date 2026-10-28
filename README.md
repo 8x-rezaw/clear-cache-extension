@@ -18,9 +18,17 @@ A Chrome extension to clear cache, cookies, site storage and address bar suggest
 - حالت روشن و تیره
 - میانبر `Alt+Shift+C`
 
-## نصب با به‌روزرسانی خودکار (macOS)
+## نصب با به‌روزرسانی خودکار
 
-این دستور را در ترمینال اجرا کنید:
+**ویندوز:** این دستور را در PowerShell اجرا کنید:
+
+```powershell
+irm https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.ps1 | iex
+```
+
+پوشه‌ی نصب `%LOCALAPPDATA%\ClearCacheExtension` است و مسیرش خودکار در کلیپ‌بورد کپی می‌شود.
+
+**مک:** این دستور را در ترمینال اجرا کنید:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash
@@ -29,11 +37,17 @@ curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main
 بعد یک بار در کروم:
 
 1. `chrome://extensions` را باز کنید و **Developer mode** را روشن کنید.
-2. روی **Load unpacked** بزنید و پوشه‌ی `~/Extensions/clear-cache-extension` را انتخاب کنید.
+2. روی **Load unpacked** بزنید و پوشه‌ی نصب را انتخاب کنید (ویندوز: `%LOCALAPPDATA%\ClearCacheExtension`، مک: `~/Extensions/clear-cache-extension`).
 
 از این به بعد نسخه‌های جدید ساعتی یک بار از گیت‌هاب دریافت می‌شوند و اکستنشن خودش را دوباره بارگذاری می‌کند؛ نیازی به دانلود دوباره نیست.
 
-برای حذف به‌روزرسانی خودکار:
+برای حذف به‌روزرسانی خودکار در ویندوز:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.ps1))) -Uninstall
+```
+
+و در مک:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash -s uninstall
@@ -47,13 +61,21 @@ curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main
 
 در این روش برای هر نسخه‌ی جدید باید فایل‌ها را دستی جایگزین کنید.
 
-## Install (auto-updating, macOS)
+## Install (auto-updating)
+
+Windows (PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.ps1 | iex
+```
+
+macOS:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash
 ```
 
-Then open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select `~/Extensions/clear-cache-extension`. The script pulls updates hourly and the extension reloads itself when its version changes.
+Then open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select the install folder (`%LOCALAPPDATA%\ClearCacheExtension` on Windows, `~/Extensions/clear-cache-extension` on macOS). The installer checks for updates hourly and the extension reloads itself when its version changes.
 
 ## Permissions
 
