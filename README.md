@@ -58,6 +58,8 @@ python3 tools/build-rules.py
 
 ## License
 
+This project is licensed under the GNU General Public License v3.0 (`LICENSE`).
+
 The bundled [Vazirmatn](https://github.com/rastikerdar/vazirmatn) font is licensed under the SIL Open Font License (`fonts/OFL.txt`).
 
 Files in `rules/` are generated from [EasyList](https://easylist.to) (GPLv3 / CC BY-SA 3.0), [uBlock filters](https://github.com/uBlockOrigin/uAssets) (GPLv3), [Peter Lowe's list](https://pgl.yoyo.org/adservers/) and [PersianBlocker](https://codeberg.org/KhodeKiaa/PersianBlocker) (AGPLv3), and remain under their respective licenses.
