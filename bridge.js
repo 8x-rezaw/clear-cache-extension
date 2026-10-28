@@ -14,6 +14,10 @@
     } catch {}
   });
 
+  document.addEventListener('__ccx_trap', () => {
+    chrome.runtime.sendMessage({ type: 'trap' }).catch(() => {});
+  });
+
   if (window !== top) return;
 
   const fa = (n) => n.toLocaleString('fa-IR');

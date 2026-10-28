@@ -48,8 +48,65 @@
 
   let lastNewWindow = 0;
 
+  const DIALOG_TEXT = /^(?:ok|okay|cancel|allow|block|close|yes|no|accept|deny|later|not now|skip|[×✕✖✗x]|تایید|تأیید|لغو|بستن|ببند|بله|خیر|باشه|اجازه|اجازه بده|بعدا|بعداً|رد|انصراف)$/i;
+  const CLOSE_ATTR = /(?<!dis)close(?!t)|dismiss|بستن/i;
+
+  const overlayOf = (el) => {
+    let found = null;
+    for (let n = el; n && n !== document.documentElement; n = n.parentElement) {
+      const p = getComputedStyle(n).position;
+      if (p === 'fixed' || p === 'sticky') found = n;
+    }
+    return found;
+  };
+
+  const suspicious = (el) => {
+    for (let n = el, i = 0; n instanceof Element && i < 4 && n !== document.body; n = n.parentElement, i++) {
+      const attrs = `${n.id} ${n.getAttribute('class') || ''} ${n.getAttribute('aria-label') || ''} ${n.getAttribute('title') || ''}`;
+      const text = (n.textContent || '').trim();
+      const closeLike = CLOSE_ATTR.test(attrs) || (text.length <= 12 && /^(?:[×✕✖✗x]|close|بستن|ببند|skip)$/i.test(text));
+      const dialogLike = text.length <= 12 && DIALOG_TEXT.test(text);
+      if (!closeLike && !dialogLike) continue;
+      const overlay = overlayOf(n);
+      if (closeLike || overlay) return { overlay };
+    }
+    return null;
+  };
+
+  const TRUSTED = new Set([
+    'shaparak.ir', 'zarinpal.com', 'idpay.ir', 'payping.ir', 'nextpay.org', 'zibal.ir', 'vandar.io', 'sep.ir',
+    'pec.ir', 'bankmellat.ir', 'sadadpsp.ir', 'asanpardakht.ir', 'bitpay.ir', 'irankish.com', 'paypal.com',
+    'stripe.com', 'google.com', 'apple.com', 'microsoft.com', 'live.com', 'github.com',
+  ]);
+  const trusted = (url) => {
+    const u = resolve(url);
+    return Boolean(u && /^https?:$/.test(u.protocol) && TRUSTED.has(siteOf(u.hostname)));
+  };
+
+  let trap = null;
+  const trapped = () => trap && Date.now() < trap.until;
+
+  const hideOverlay = () => {
+    const el = trap?.overlay;
+    if (!el) return;
+    el.style.setProperty('display', 'none', 'important');
+    for (const root of [document.documentElement, document.body]) {
+      if (root && getComputedStyle(root).overflow === 'hidden') root.style.setProperty('overflow', 'auto', 'important');
+    }
+  };
+
+  const blockTrapped = (url) => {
+    hideOverlay();
+    report(url);
+    trap = null;
+  };
+
   const nativeOpen = window.open;
   function open(url, ...rest) {
+    if (trapped() && !trusted(url)) {
+      blockTrapped(url);
+      return null;
+    }
     if (allowed(url)) {
       lastNewWindow = Date.now();
       return nativeOpen.call(this === undefined ? window : this, url, ...rest);
@@ -90,8 +147,18 @@
   const anchorOf = (e) => (e.target instanceof Element ? e.target.closest('a[href]') : null);
 
   addEventListener('click', (e) => {
+    if (e.isTrusted && e.button === 0) {
+      const hit = suspicious(e.target);
+      trap = hit ? { until: Date.now() + 1500, overlay: hit.overlay } : null;
+      if (hit) document.dispatchEvent(new CustomEvent('__ccx_trap'));
+    }
     const a = anchorOf(e);
     if (!a || e.button !== 0) return;
+    if (trapped() && !allowed(a.href) && !trusted(a.href) && !a.getAttribute('href').startsWith('#')) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return blockTrapped(a.href);
+    }
     if (e.isTrusted && (e.ctrlKey || e.metaKey || e.shiftKey)) return approve(a.href);
     if (!opensNewWindow(a)) return;
     if (blockAnchor(a, e.isTrusted)) {
@@ -115,7 +182,12 @@
 
   if (window === top && window.navigation) {
     navigation.addEventListener('navigate', (e) => {
-      if (!e.cancelable || e.userInitiated || e.hashChange || e.downloadRequest !== null) return;
+      if (!e.cancelable || e.hashChange || e.downloadRequest !== null) return;
+      if (trapped() && e.formData === null && !allowed(e.destination.url) && !trusted(e.destination.url)) {
+        e.preventDefault();
+        return blockTrapped(e.destination.url);
+      }
+      if (e.userInitiated) return;
       if (Date.now() - lastNewWindow > 3000 || allowed(e.destination.url)) return;
       e.preventDefault();
       report(e.destination.url);

@@ -8,7 +8,7 @@
   dark.addEventListener('change', apply);
 
   document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('theme').addEventListener('click', () => {
+    document.getElementById('theme')?.addEventListener('click', () => {
       saved = root.dataset.theme === 'dark' ? 'light' : 'dark';
       try { localStorage.setItem('theme', saved); } catch {}
       apply();

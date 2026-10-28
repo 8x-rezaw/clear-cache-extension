@@ -1,0 +1,68 @@
+<!doctype html>
+<html dir="rtl" lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تبلیغ مسدود شد</title>
+<link rel="icon" href="icons/icon32.png">
+<link rel="preload" href="fonts/vazirmatn.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  @font-face {
+    font-family: "Vazirmatn";
+    src: url("fonts/vazirmatn.woff2") format("woff2");
+    font-weight: 100 900;
+    font-display: block;
+  }
+  :root {
+    color-scheme: light;
+    --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --muted: #6b7280; --soft: #f3f4f6;
+    --accent: #1a73e8; --accent-hover: #1765cc;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #1e1f22; --card: #2b2d31; --text: #e8eaed; --muted: #9aa0a6; --soft: #3c4043;
+    --accent: #3b82f6; --accent-hover: #2f6fe0;
+  }
+  * { box-sizing: border-box; font-family: "Vazirmatn"; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px;
+    background: var(--bg); color: var(--text); font-feature-settings: "ss01";
+  }
+  main {
+    width: 100%; max-width: 420px; padding: 28px 24px; border-radius: 16px; text-align: center;
+    background: var(--card); box-shadow: 0 8px 30px rgba(0,0,0,.08);
+  }
+  img { width: 56px; height: 56px; }
+  h1 { margin: 12px 0 6px; font-size: 18px; font-weight: 700; }
+  p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
+  #url {
+    direction: ltr; margin-top: 14px; padding: 8px 10px; border-radius: 8px; background: var(--soft);
+    font-size: 12px; color: var(--muted); overflow-wrap: anywhere; text-align: left;
+  }
+  #url:empty { display: none; }
+  .actions { display: grid; gap: 8px; margin-top: 20px; }
+  button {
+    padding: 10px; border: 0; border-radius: 9px; cursor: pointer;
+    background: var(--accent); color: #fff; font-size: 14px; font-weight: 700;
+  }
+  button:hover { background: var(--accent-hover); }
+  button.secondary { background: none; color: var(--muted); font-size: 12px; font-weight: 500; }
+  button.secondary:hover { background: var(--soft); }
+  button[hidden] { display: none; }
+</style>
+<script src="theme.js"></script>
+</head>
+<body>
+  <main>
+    <img src="icons/icon128.png" alt="">
+    <h1>صفحه‌ی تبلیغاتی مسدود شد</h1>
+    <p>این آدرس متعلق به یک شبکه‌ی تبلیغاتی شناخته‌شده است.</p>
+    <div id="url"></div>
+    <div class="actions">
+      <button id="back">بازگشت</button>
+      <button id="proceed" class="secondary" hidden>به هر حال باز کن</button>
+    </div>
+  </main>
+  <script src="blocked.js"></script>
+</body>
+</html>

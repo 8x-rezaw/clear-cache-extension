@@ -8,6 +8,17 @@ const sync = () => (queue = queue.then(register, register));
 
 async function register() {
   const { popupBlock, allowedSites } = await getSettings();
+  await chrome.declarativeNetRequest.updateEnabledRulesets(
+    popupBlock ? { enableRulesetIds: ['ads'] } : { disableRulesetIds: ['ads'] });
+  const dynamic = await chrome.declarativeNetRequest.getDynamicRules();
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: dynamic.map((r) => r.id),
+    addRules: popupBlock && allowedSites.length ? [
+      { id: 1, priority: 100, action: { type: 'allowAllRequests' }, condition: { requestDomains: allowedSites, resourceTypes: ['main_frame', 'sub_frame'] } },
+      { id: 2, priority: 100, action: { type: 'allow' }, condition: { initiatorDomains: allowedSites, resourceTypes: ['main_frame'] } },
+    ] : [],
+  });
+
   const existing = await chrome.scripting.getRegisteredContentScripts();
   if (existing.length) await chrome.scripting.unregisterContentScripts();
   if (!popupBlock) return;
@@ -47,6 +58,26 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const approvals = new Map();
 const watched = new Map();
+const traps = new Map();
+const committed = new Map();
+const attempts = new Map();
+const trapped = (tabId) => (traps.get(tabId) || 0) > Date.now();
+
+let cosmetic = null;
+async function cosmeticCss(hostname) {
+  cosmetic ??= await fetch(chrome.runtime.getURL('rules/cosmetic.json')).then((r) => r.json());
+  const parts = hostname.split('.');
+  const hosts = parts.map((_, i) => parts.slice(i).join('.'));
+  const selectors = new Set(cosmetic.generic);
+  for (const [sel, except] of Object.entries(cosmetic.genericExcept)) {
+    if (!except.some((d) => hosts.includes(d))) selectors.add(sel);
+  }
+  for (const h of hosts) for (const sel of cosmetic.sites[h] || []) selectors.add(sel);
+  for (const [sel, domains] of Object.entries(cosmetic.except)) {
+    if (domains.some((d) => hosts.includes(d))) selectors.delete(sel);
+  }
+  return [...selectors].map((sel) => `${sel}{display:none!important}`).join('\n');
+}
 
 function addApproval(tabId, url, long) {
   const now = Date.now();
@@ -89,6 +120,10 @@ chrome.webNavigation.onCreatedNavigationTarget.addListener(async (d) => {
   const site = siteOf(from.hostname);
   if (allowedSites.includes(site)) return;
 
+  if (trapped(d.sourceTabId)) {
+    chrome.tabs.remove(d.tabId).catch(() => {});
+    return reportBlocked(d.sourceTabId, d.url);
+  }
   const entry = { source: d.sourceTabId, site, url: d.url, pending: true, until: Date.now() + 15000 };
   watched.set(d.tabId, entry);
   await sleep(250);
@@ -104,12 +139,37 @@ const onMainFrame = (d) => {
   entry.url = d.url;
   inspect(d.tabId);
 };
-chrome.webNavigation.onBeforeNavigate.addListener(onMainFrame);
+chrome.webNavigation.onBeforeNavigate.addListener((d) => {
+  if (d.frameId === 0) attempts.set(d.tabId, d.url);
+  onMainFrame(d);
+});
 chrome.webNavigation.onCommitted.addListener(onMainFrame);
 
+chrome.webNavigation.onCommitted.addListener(async (d) => {
+  const url = parseWeb(d.url);
+  if (d.frameId === 0) {
+    const previous = committed.get(d.tabId);
+    committed.set(d.tabId, url ? siteOf(url.hostname) : null);
+    if (url && previous && previous !== siteOf(url.hostname) && trapped(d.tabId)) {
+      traps.delete(d.tabId);
+      await chrome.tabs.goBack(d.tabId).catch(() => {});
+      return reportBlocked(d.tabId, d.url);
+    }
+  }
+  if (!url) return;
+
+  const { popupBlock, allowedSites } = await getSettings();
+  if (!popupBlock) return;
+  const top = d.frameId === 0 ? url : parseWeb((await chrome.tabs.get(d.tabId).catch(() => null))?.url);
+  if (top && allowedSites.includes(siteOf(top.hostname))) return;
+  const css = await cosmeticCss(url.hostname);
+  if (css) {
+    chrome.scripting.insertCSS({ target: { tabId: d.tabId, frameIds: [d.frameId] }, css, origin: 'USER' }).catch(() => {});
+  }
+});
+
 chrome.tabs.onRemoved.addListener((tabId) => {
-  watched.delete(tabId);
-  approvals.delete(tabId);
+  for (const map of [watched, approvals, traps, committed, attempts]) map.delete(tabId);
 });
 
 async function bumpBadge(tabId) {
@@ -132,6 +192,24 @@ chrome.tabs.onUpdated.addListener((tabId, info) => {
 const handlers = {
   async blocked(msg, sender) {
     if (sender.tab) await reportBlocked(sender.tab.id, msg.url);
+  },
+  async trap(msg, sender) {
+    if (sender.tab) traps.set(sender.tab.id, Date.now() + 1500);
+  },
+  async lastBlocked(msg, sender) {
+    const blockedPage = chrome.runtime.getURL('blocked.html');
+    if (!sender.tab || !sender.url?.startsWith(blockedPage)) return null;
+    return attempts.get(sender.tab.id) || null;
+  },
+  async bypass(msg, sender) {
+    const url = parseWeb(msg.url);
+    if (!url || !sender.url?.startsWith(chrome.runtime.getURL('blocked.html'))) return false;
+    const id = 1000 + Math.floor(Math.random() * 1e6);
+    await chrome.declarativeNetRequest.updateSessionRules({
+      addRules: [{ id, priority: 200, action: { type: 'allow' }, condition: { requestDomains: [url.hostname], resourceTypes: ['main_frame'] } }],
+    });
+    setTimeout(() => chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [id] }), 30000);
+    return true;
   },
   async approve(msg, sender) {
     if (sender.tab && parseWeb(msg.url)) addApproval(sender.tab.id, msg.url, msg.long);
@@ -159,6 +237,6 @@ const handlers = {
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   const handler = handlers[msg?.type];
   if (!handler) return false;
-  handler(msg, sender).then(() => reply(true), () => reply(false));
+  handler(msg, sender).then((result) => reply(result ?? true), () => reply(false));
   return true;
 });

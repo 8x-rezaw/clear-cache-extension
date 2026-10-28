@@ -2,7 +2,7 @@
 
 اکستنشن کروم برای پاک کردن کش، کوکی‌ها، حافظه‌ی سایت‌ها و پیشنهادهای نوار آدرس، به‌همراه مسدودکننده‌ی پنجره‌های تبلیغاتی.
 
-A Chrome extension to clear cache, cookies, site storage and address bar suggestions, with a pop-up ad blocker.
+A Chrome extension to clear cache, cookies, site storage and address bar suggestions, with an ad and pop-up blocker.
 
 ## امکانات
 
@@ -10,7 +10,10 @@ A Chrome extension to clear cache, cookies, site storage and address bar suggest
 - انتخاب بازه‌ی زمانی: ۱ ساعت، ۲۴ ساعت، ۱ هفته یا همه
 - پاک کردن فقط برای سایت فعلی
 - پاک کردن پیشنهادهای نوار آدرس (تاریخچه) با یک دکمه‌ی جدا
-- مسدود کردن تب‌ها و پنجره‌های تبلیغاتی و ریدایرکت تب فعلی به سایت تبلیغاتی، با امکان باز کردن دستی یا مجاز کردن هر سایت
+- مسدود کردن شبکه‌های تبلیغاتی و مخفی کردن تبلیغ‌های داخل صفحه، بر پایه‌ی فهرست‌های EasyList و PersianBlocker
+- مسدود کردن تب‌ها و پنجره‌های تبلیغاتی و ریدایرکت تب فعلی به سایت تبلیغاتی
+- شناسایی پنجره‌های هشدار جعلی و دکمه‌های «بستن» تقلبی که به صفحه‌ی تبلیغاتی می‌برند
+- امکان باز کردن دستی یا مجاز کردن هر سایت
 - حالت روشن و تیره
 - میانبر `Alt+Shift+C`
 
@@ -40,11 +43,20 @@ A Chrome extension to clear cache, cookies, site storage and address bar suggest
 | `history` | Clearing address bar suggestions for a single site |
 | `scripting`, host access | Running the pop-up blocker on web pages |
 | `webNavigation` | Closing ad tabs that a page opens or redirects to another site |
+| `declarativeNetRequest` | Blocking requests to known ad networks |
 | `storage` | Remembering blocker settings and allowed sites |
 | `activeTab` | Reading the current tab's address |
 
 No data leaves your browser.
 
+## Updating the filter lists
+
+```bash
+python3 tools/build-rules.py
+```
+
 ## License
 
 The bundled [Vazirmatn](https://github.com/rastikerdar/vazirmatn) font is licensed under the SIL Open Font License (`fonts/OFL.txt`).
+
+Files in `rules/` are generated from [EasyList](https://easylist.to) (GPLv3 / CC BY-SA 3.0) and [PersianBlocker](https://codeberg.org/KhodeKiaa/PersianBlocker) (AGPLv3) and remain under their respective licenses.
