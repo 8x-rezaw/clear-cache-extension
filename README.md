@@ -18,64 +18,132 @@ A Chrome extension to clear cache, cookies, site storage and address bar suggest
 - حالت روشن و تیره
 - میانبر `Alt+Shift+C`
 
-## نصب با به‌روزرسانی خودکار
+## نصب
 
-**ویندوز:** این دستور را در PowerShell اجرا کنید:
+دو روش دارید. روش اول پیشنهاد می‌شود، چون نسخه‌های جدید خودکار نصب می‌شوند و لازم نیست هر بار چیزی دانلود کنید.
+
+| | نصب خودکار | نصب دستی |
+|---|---|---|
+| به‌روزرسانی | خودکار، ساعتی یک بار | دستی، با دانلود هر نسخه |
+| نیازمندی | ویندوز: هیچ — مک: git | هیچ |
+
+> **اگر قبلاً نسخه‌ای را دستی نصب کرده‌اید:** قبل از نصب خودکار، در `chrome://extensions` روی کارت Clear Cache دکمه‌ی **Remove** را بزنید. کروم اکستنشن را فقط از پوشه‌ای اجرا می‌کند که هنگام نصب انتخاب شده؛ اگر نسخه‌ی قدیمی را حذف نکنید، همان نسخه باقی می‌ماند.
+
+### ویندوز — نصب خودکار
+
+**۱. اجرای اسکریپت نصب**
+
+منوی Start را باز کنید، **PowerShell** را جست‌وجو و اجرا کنید (دسترسی Administrator لازم نیست) و این دستور را بزنید:
 
 ```powershell
 irm https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.ps1 | iex
 ```
 
-پوشه‌ی نصب `%LOCALAPPDATA%\ClearCacheExtension` است و مسیرش خودکار در کلیپ‌بورد کپی می‌شود.
+اسکریپت آخرین نسخه را در این پوشه نصب می‌کند و مسیرش را در کلیپ‌بورد کپی می‌کند:
 
-**مک:** این دستور را در ترمینال اجرا کنید:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash
+```
+%LOCALAPPDATA%\ClearCacheExtension
 ```
 
-بعد یک بار در کروم:
+(مثلاً `C:\Users\<نام کاربری>\AppData\Local\ClearCacheExtension`)
 
-1. `chrome://extensions` را باز کنید و **Developer mode** را روشن کنید.
-2. روی **Load unpacked** بزنید و پوشه‌ی نصب را انتخاب کنید (ویندوز: `%LOCALAPPDATA%\ClearCacheExtension`، مک: `~/Extensions/clear-cache-extension`).
+> دستور `curl ... | bash` مخصوص مک است و در ویندوز خطای `'bash' is not recognized` می‌دهد؛ در ویندوز فقط از دستور بالا استفاده کنید.
 
-از این به بعد نسخه‌های جدید ساعتی یک بار از گیت‌هاب دریافت می‌شوند و اکستنشن خودش را دوباره بارگذاری می‌کند؛ نیازی به دانلود دوباره نیست.
+**۲. افزودن به کروم (فقط یک بار)**
 
-برای حذف به‌روزرسانی خودکار در ویندوز:
+1. در کروم آدرس `chrome://extensions` را باز کنید.
+2. در گوشه‌ی بالا **Developer mode** را روشن کنید.
+3. روی **Load unpacked** بزنید.
+4. پوشه‌ی `AppData` مخفی است و در پنجره‌ی انتخاب پوشه دیده نمی‌شود. روی نوار آدرس بالای پنجره کلیک کنید، با `Ctrl+V` مسیری را که در کلیپ‌بورد کپی شده بچسبانید و Enter بزنید.
+5. روی **Select Folder** بزنید.
+6. روی کارت اکستنشن باید آخرین شماره‌ی نسخه را ببینید.
+
+**حذف به‌روزرسانی خودکار**
 
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.ps1))) -Uninstall
 ```
 
-و در مک:
+بعد اکستنشن را در `chrome://extensions` با **Remove** حذف کنید و پوشه‌ی `%LOCALAPPDATA%\ClearCacheExtension` را پاک کنید.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash -s uninstall
-```
+### مک — نصب خودکار
 
-## نصب دستی
+**۱. اجرای اسکریپت نصب**
 
-1. آخرین نسخه را از بخش [Releases](../../releases) دانلود و از حالت فشرده خارج کنید.
-2. پوشه را جای ثابتی بگذارید؛ اگر پاک یا جابه‌جا شود، اکستنشن از کار می‌افتد.
-3. `chrome://extensions` را باز کنید، **Developer mode** را روشن کنید و با **Load unpacked** پوشه را انتخاب کنید.
-
-در این روش برای هر نسخه‌ی جدید باید فایل‌ها را دستی جایگزین کنید.
-
-## Install (auto-updating)
-
-Windows (PowerShell):
-
-```powershell
-irm https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.ps1 | iex
-```
-
-macOS:
+برنامه‌ی **Terminal** را باز کنید و این دستور را بزنید:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash
 ```
 
-Then open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select the install folder (`%LOCALAPPDATA%\ClearCacheExtension` on Windows, `~/Extensions/clear-cache-extension` on macOS). The installer checks for updates hourly and the extension reloads itself when its version changes.
+اگر git نصب نباشد، اسکریپت پیام می‌دهد؛ ابتدا `xcode-select --install` را اجرا کنید و بعد دوباره دستور بالا را بزنید.
+
+اسکریپت آخرین نسخه را در این پوشه نصب می‌کند:
+
+```
+~/Extensions/clear-cache-extension
+```
+
+**۲. افزودن به کروم (فقط یک بار)**
+
+1. در کروم آدرس `chrome://extensions` را باز کنید.
+2. در گوشه‌ی بالا **Developer mode** را روشن کنید.
+3. روی **Load unpacked** بزنید.
+4. در پنجره‌ی انتخاب پوشه `Cmd+Shift+G` را بزنید، `~/Extensions/clear-cache-extension` را وارد کنید و Enter بزنید.
+5. روی **Select** بزنید.
+6. روی کارت اکستنشن باید آخرین شماره‌ی نسخه را ببینید.
+
+**حذف به‌روزرسانی خودکار**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash -s uninstall
+```
+
+بعد اکستنشن را در `chrome://extensions` با **Remove** حذف کنید و پوشه‌ی `~/Extensions/clear-cache-extension` را پاک کنید.
+
+### به‌روزرسانی خودکار چطور کار می‌کند
+
+- ویندوز با یک Scheduled Task و مک با یک LaunchAgent، ساعتی یک بار (و هنگام ورود به سیستم) نسخه‌ی روی گیت‌هاب را بررسی می‌کنند و اگر جدیدتر بود فایل‌ها را جایگزین می‌کنند.
+- خود اکستنشن هر ۳۰ دقیقه بررسی می‌کند که نسخه‌ی روی دیسک عوض شده یا نه و در این صورت خودش را دوباره بارگذاری می‌کند.
+- یعنی هر نسخه‌ی جدید حداکثر حدود یک ساعت و نیم بعد از انتشار، بدون هیچ کاری اعمال می‌شود. پوشه‌ی نصب را جابه‌جا یا پاک نکنید.
+
+### نصب دستی (بدون به‌روزرسانی خودکار)
+
+1. فایل zip آخرین نسخه را از بخش [Releases](../../releases) دانلود کنید.
+2. آن را از حالت فشرده خارج کنید و پوشه‌ی `clear-cache-extension` را جای ثابتی بگذارید؛ اگر پاک یا جابه‌جا شود، اکستنشن از کار می‌افتد.
+3. در `chrome://extensions` حالت **Developer mode** را روشن کنید، روی **Load unpacked** بزنید و همین پوشه را انتخاب کنید.
+
+برای هر نسخه‌ی جدید باید zip تازه را دانلود کنید، فایل‌های پوشه را جایگزین کنید و در `chrome://extensions` روی دکمه‌ی رفرش اکستنشن بزنید.
+
+### مشکلات رایج
+
+| مشکل | راه‌حل |
+|---|---|
+| بعد از نصب خودکار، کروم هنوز نسخه‌ی قدیمی را نشان می‌دهد | نسخه‌ی قبلی از پوشه‌ی دیگری نصب شده. آن را **Remove** کنید و با **Load unpacked** پوشه‌ی نصب خودکار را انتخاب کنید. |
+| در ویندوز خطای `'bash' is not recognized` | از دستور PowerShell بخش ویندوز استفاده کنید، نه دستور مک. |
+| پوشه‌ی `AppData` در پنجره‌ی انتخاب دیده نمی‌شود | مسیر را در نوار آدرس پنجره بچسبانید (بخش ویندوز، مرحله‌ی ۴). |
+| خطای `Cannot load extension with file or directory name _metadata` | پوشه‌ی `_metadata` داخل پوشه‌ی اکستنشن را پاک کنید و **Retry** بزنید. این مشکل معمولاً وقتی پیش می‌آید که پوشه در iCloud یا OneDrive باشد؛ پوشه‌های نصب خودکار بیرون از این سرویس‌ها هستند. |
+| روی سایتی چیزی که تبلیغ نیست مخفی شده یا سایت درست کار نمی‌کند | از پاپ‌آپ اکستنشن «برای این سایت خاموش کن» را بزنید. |
+
+## Installation (English)
+
+**Windows** — run in PowerShell (no admin needed):
+
+```powershell
+irm https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.ps1 | iex
+```
+
+**macOS** — run in Terminal (requires git; install it with `xcode-select --install` if missing):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash
+```
+
+Then, once: open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select the install folder — `%LOCALAPPDATA%\ClearCacheExtension` on Windows (paste the path into the picker's address bar; it is copied to the clipboard), `~/Extensions/clear-cache-extension` on macOS (press `Cmd+Shift+G` in the picker). If an older copy is already installed, **Remove** it first.
+
+Updates are checked hourly and the extension reloads itself when its version changes. To uninstall, run the same command with `-Uninstall` (Windows: `& ([scriptblock]::Create((irm <url>))) -Uninstall`) or `bash -s uninstall` (macOS), then remove the extension in Chrome.
+
+Manual install: download the zip from [Releases](../../releases), unzip it to a permanent folder and load it with **Load unpacked**.
 
 ## Permissions
 
