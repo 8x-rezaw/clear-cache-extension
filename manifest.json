@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Clear Cache",
-  "version": "1.6",
+  "version": "1.7",
   "description": "پاک کردن کش و تاریخچه‌ی مرورگر و مسدود کردن تبلیغات و پنجره‌های مزاحم",
   "minimum_chrome_version": "120",
   "permissions": [
@@ -11,7 +11,8 @@
     "scripting",
     "webNavigation",
     "storage",
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "alarms"
   ],
   "host_permissions": [
     "http://*/*",

@@ -209,6 +209,19 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 chrome.runtime.onStartup.addListener(sync);
 
+// Unpacked installs are updated on disk (git pull); reload when the files change.
+async function reloadIfUpdated() {
+  try {
+    const onDisk = await fetch(chrome.runtime.getURL('manifest.json'), { cache: 'no-store' }).then((r) => r.json());
+    if (onDisk.version !== chrome.runtime.getManifest().version) chrome.runtime.reload();
+  } catch {}
+}
+chrome.alarms.get('update-check').then((alarm) => alarm || chrome.alarms.create('update-check', { periodInMinutes: 30 }));
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'update-check') reloadIfUpdated();
+});
+chrome.runtime.onStartup.addListener(reloadIfUpdated);
+
 chrome.tabs.onUpdated.addListener((tabId, info) => {
   if (info.status === 'loading' && info.url) chrome.action.setBadgeText({ tabId, text: '' });
 });

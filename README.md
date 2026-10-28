@@ -18,23 +18,42 @@ A Chrome extension to clear cache, cookies, site storage and address bar suggest
 - حالت روشن و تیره
 - میانبر `Alt+Shift+C`
 
-## نصب
+## نصب با به‌روزرسانی خودکار (macOS)
 
-1. آخرین نسخه را از بخش [Releases](../../releases) دانلود و از حالت فشرده خارج کنید، یا مخزن را clone کنید.
-2. پوشه را جای ثابتی بگذارید (مثلاً Documents)؛ اگر پاک یا جابه‌جا شود، اکستنشن از کار می‌افتد.
-3. `chrome://extensions` را باز کنید و **Developer mode** را روشن کنید.
-4. روی **Load unpacked** بزنید و پوشه‌ای را که `manifest.json` در آن است انتخاب کنید.
+این دستور را در ترمینال اجرا کنید:
 
-### به‌روزرسانی
+```bash
+curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash
+```
 
-فایل‌های نسخه‌ی جدید را جایگزین کنید (یا `git pull` بزنید) و در `chrome://extensions` روی دکمه‌ی رفرش اکستنشن بزنید.
+بعد یک بار در کروم:
 
-## Install
+1. `chrome://extensions` را باز کنید و **Developer mode** را روشن کنید.
+2. روی **Load unpacked** بزنید و پوشه‌ی `~/Extensions/clear-cache-extension` را انتخاب کنید.
 
-1. Download the latest release and unzip it, or clone this repository.
-2. Keep the folder in a permanent location.
-3. Open `chrome://extensions` and enable **Developer mode**.
-4. Click **Load unpacked** and select the folder containing `manifest.json`.
+از این به بعد نسخه‌های جدید ساعتی یک بار از گیت‌هاب دریافت می‌شوند و اکستنشن خودش را دوباره بارگذاری می‌کند؛ نیازی به دانلود دوباره نیست.
+
+برای حذف به‌روزرسانی خودکار:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash -s uninstall
+```
+
+## نصب دستی
+
+1. آخرین نسخه را از بخش [Releases](../../releases) دانلود و از حالت فشرده خارج کنید.
+2. پوشه را جای ثابتی بگذارید؛ اگر پاک یا جابه‌جا شود، اکستنشن از کار می‌افتد.
+3. `chrome://extensions` را باز کنید، **Developer mode** را روشن کنید و با **Load unpacked** پوشه را انتخاب کنید.
+
+در این روش برای هر نسخه‌ی جدید باید فایل‌ها را دستی جایگزین کنید.
+
+## Install (auto-updating, macOS)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/8x-rezaw/clear-cache-extension/main/install.sh | bash
+```
+
+Then open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select `~/Extensions/clear-cache-extension`. The script pulls updates hourly and the extension reloads itself when its version changes.
 
 ## Permissions
 
@@ -46,6 +65,7 @@ A Chrome extension to clear cache, cookies, site storage and address bar suggest
 | `webNavigation` | Closing ad tabs that a page opens or redirects to another site |
 | `declarativeNetRequest` | Blocking requests to known ad networks |
 | `storage` | Remembering blocker settings and allowed sites |
+| `alarms` | Checking for a newer version on disk |
 | `activeTab` | Reading the current tab's address |
 
 No data leaves your browser.
