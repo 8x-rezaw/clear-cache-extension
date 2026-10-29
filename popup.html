@@ -79,7 +79,8 @@
     opacity: 0; pointer-events: none; transition: opacity .15s;
   }
   .blocker[data-en]:hover::after { opacity: 1; transition-delay: .3s; }
-  .section-title { font-size: 11px; font-weight: 600; color: var(--muted); margin: 8px 0 2px; }
+  .section-title { font-size: 11px; font-weight: 600; color: var(--muted); margin: 8px 0 2px; display: flex; justify-content: space-between; gap: 8px; }
+  #usage { font-weight: 500; }
   label.opt {
     position: relative; display: flex; align-items: flex-start; gap: 8px;
     padding: 4px 6px; border-radius: 6px; cursor: pointer;
@@ -139,7 +140,7 @@
     <input type="checkbox" id="popupBlock" class="switch" aria-label="مسدود کردن تبلیغات">
   </div>
 
-  <div class="section-title">چه چیزهایی پاک شود</div>
+  <div class="section-title"><span>چه چیزهایی پاک شود</span><span id="usage" title="Storage used by this site"></span></div>
   <label class="opt" data-en="Cache"><input type="checkbox" id="cache" checked><span><b>کش مرورگر</b><small>فایل‌هایی که برای باز شدن سریع‌تر صفحه‌ها ذخیره شده</small></span></label>
   <label class="opt" data-en="Cache Storage / Service Workers"><input type="checkbox" id="cacheStorage"><span><b>حافظه‌ی آفلاین سایت‌ها</b><small>داده‌هایی که سایت‌ها برای کار بدون اینترنت نگه می‌دارند</small></span></label>
   <label class="opt" data-en="Cookies"><input type="checkbox" id="cookies"><span><b>کوکی‌ها</b><small>با پاک شدنشان از حساب کاربری سایت‌ها خارج می‌شوید</small></span></label>

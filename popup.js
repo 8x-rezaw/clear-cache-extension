@@ -103,6 +103,7 @@ $('clear').addEventListener('click', () => run($('clear'), async () => {
   const reload = $('reload').checked && tab?.id !== undefined && Boolean(parseWebUrl(tab.url));
   const done = await chrome.runtime.sendMessage({ type: 'clear', options, dataTypes, tabId: tab?.id, reload });
   if (done !== true) throw new UserError('پاک کردن انجام نشد.');
+  setTimeout(showUsage, reload ? 1500 : 0);
 }));
 
 $('clearSuggestions').addEventListener('click', () => run($('clearSuggestions'), async () => {
@@ -119,6 +120,45 @@ $('clearSuggestions').addEventListener('click', () => run($('clearSuggestions'),
   }
   await Promise.all([...urls].map((url) => chrome.history.deleteUrl({ url })));
 }));
+
+// Chrome does not expose the HTTP cache size; this is what the current site keeps
+// in its own storage (offline data, databases and local storage).
+async function siteUsage(tab) {
+  const [{ result }] = await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: async () => {
+      const { usage = 0 } = await navigator.storage.estimate();
+      let local = 0;
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          local += (key.length + localStorage.getItem(key).length) * 2;
+        }
+      } catch {}
+      return usage + local;
+    },
+  });
+  return result;
+}
+
+function formatSize(bytes) {
+  const units = ['بایت', 'کیلوبایت', 'مگابایت', 'گیگابایت'];
+  let i = 0;
+  while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
+  const n = bytes.toLocaleString('fa-IR', { maximumFractionDigits: i > 1 ? 1 : 0 });
+  return `${n} ${units[i]}`;
+}
+
+async function showUsage() {
+  const el = $('usage');
+  const tab = await activeTab();
+  if (!tab?.id || !parseWebUrl(tab.url)) return (el.textContent = '');
+  try {
+    el.textContent = 'این سایت: ' + formatSize(await siteUsage(tab));
+  } catch {
+    el.textContent = '';
+  }
+}
 
 function baseHost(hostname) {
   return hostname.replace(/^www\./, '');
@@ -188,3 +228,4 @@ async function initBlocker() {
 }
 
 initBlocker();
+showUsage();
